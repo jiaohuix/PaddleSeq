@@ -1,0 +1,8 @@
+attrdict
+tqdm
+yacs
+sacremoses==0.0.53
+fastcore==1.5.21
+sacrebleu==1.5
+pandas==1.1.5
+paddlenlp==2.1.1

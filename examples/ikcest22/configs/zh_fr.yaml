@@ -1,0 +1,147 @@
+seed: 1
+eval: False
+SAVE: output # save dir for model、log、generated text
+
+# Hyparams for dataset:
+data:
+  src_lang: zh
+  tgt_lang: fr
+  # The prefix pattern to match train、valid、test  files.
+  train_pref: datasets/bpe/zh_fr/train
+  valid_pref: datasets/bpe/zh_fr/valid
+  test_pref:  datasets/bpe/zh_fr/test.zh_fr
+  # The prefix pattern to match vocabulary.
+  vocab_pref: datasets/bpe/zh_fr/vocab
+  use_moses_bpe: False
+  src_bpe_path: datasets/bpe/zh_fr/code.zh
+  tgt_bpe_path: datasets/bpe/zh_fr/code.fr
+  truecase_path: None
+  # The <bos>, <eos> and <unk> tokens in the dictionary.
+  special_token: ["<s>","<pad>","</s>","<unk>"]
+  # Used to pad vocab size to be multiple of pad_factor.
+  pad_vocab: False
+  pad_factor: 8
+  has_target: True
+  use_binary: False
+  lazy_load: False  # weather to load buffer size of data
+ # for dual traing
+  with_tag: False  # if with tag, replace <s> in prev_tokens with <lang> tag:    <sos> tgt_tokens -> <lang> tgt_tokens
+  lang_embed: False
+  language_token: ["<de>","<en>"]
+
+
+# Hyparams for models:
+model:
+  model_name: transformer_base
+  dmodel: 512
+  dropout: 0.3
+  # Path of trained parameter, to make prediction
+  init_from_params: ""
+  # The directory for saving models
+  save_model: "ckpt_zhfr"
+  # Size of source、target word dictionary（automatically updated after 'prep_vocab'）.
+  src_vocab_size: None
+  tgt_vocab_size: None
+  # Index for <bos>,<pad>,<eos>,<unk> token
+  bos_idx: 0
+  pad_idx: 1
+  eos_idx: 2
+  unk_idx: 3
+  # Max length of sequences deciding the size of position encoding table.
+  min_length: 0
+  max_length: 1024
+
+# Hyparams for optimizer and scheduler:
+learning_strategy:
+  optim: adam
+  sched: inverse_sqrt
+  warm_steps: 4000
+  learning_rate: 5e-4
+  min_lr: -1 # early stop
+  reset_lr: False
+  weight_decay: 1e-4
+  clip_norm: 0
+  clip_type: local  # [local|global]
+
+  # The weight used to mix up the ground-truth distribution and the fixed uniform distribution
+  # in label smoothing when training. Set this as zero if label smoothing is not wanted.
+  label_smooth_eps: 0.1
+
+  optimizer:
+    nag:
+      use_nesterov: True
+      momentum: 0.99
+    adam: # same as adamw
+      beta1: 0.9
+      beta2: 0.98
+
+  scheduler:
+    # The parameters for learning rate scheduling."Reduce the learning rate by an order of magnitude
+    # after each epoch until it falls below 10−4"
+    plateau: # convs2s
+      patience: 1 # shrink lr after several epochs without improving  dev ppl.
+      force_anneal: 50 # force annneal based on lr_shrink
+      lr_shrink: 0.1 # lr=lr*lr_shrink
+    cosine:
+      t_max: 10
+    linear: # share for noamdecay and inverse_sqrt
+      warm_steps: 4000
+    noamdecay: # transformer
+      d_model: 512
+    inverse_sqrt: # fairseq offen use for transformer
+      warmup_init_lr: 1e-7
+    knee:
+      warmup_init_lr: 1e-7
+      explore_epochs: 40
+
+
+# Hyparams for training:
+train:
+  # Whether to use cuda
+  use_gpu: True
+  num_workers: 1
+  # The number of epoches for training
+  max_epoch: 50
+  max_update: -1
+  resume: ""
+  last_epoch: 0 # default 0 to train from scratch
+  last_step: 0
+  # The frequency to save trained models when training.
+  save_epoch: 10
+  save_step: 0
+  stop_patience: -1
+  amp: False
+  fp16_init_scale: 128
+  amp_scale_window: False
+  growth_interval: 128
+  update_freq: 1
+  # Args for reader, see reader.py for details
+  log_steps: 100
+  # max tokens per batch, eg: 2k 4k 6k (12g,24g,32g  use amp)
+  max_tokens: 4096
+  max_sentences: None
+  batch_size_factor: 8
+  report_bleu: True
+  eval_beam: False
+  # STACL
+  pool_size: 200000
+  sort_type: "pool"
+  shuffle: True
+  shuffle_batch: True
+  train_data_size: -1
+
+# Hyparams for generation:
+generate:
+  search_strategy: beam # [beam/sample]
+  infer_bsz: 256
+  max_sentences: None
+  # The parameters for beam search.
+  beam_size: 5
+  # The number of decoded sentences to output.
+  n_best: 1
+  max_out_len: 200
+  # max_out_len is relative length to src_len
+  # The file to output the translation results of predict_file to.
+  generate_path: "generate.txt"
+  sorted_path: "result.txt"
+  detokenize: False
