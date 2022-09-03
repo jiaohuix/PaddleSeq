@@ -1,4 +1,7 @@
 # PaddleSeq
+
+For Machine Translation using PaddlePaddle.
+
 ## Requirements
 
 ```shell
