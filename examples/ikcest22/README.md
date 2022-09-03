@@ -53,7 +53,10 @@ python paddleseq_cli/generate.py -c examples/ikcest22/configs/zh_th.yaml --pretr
 ```shell
 #eg3: visualize zh->th training curve
 visualdl --logdir output/vislogs/zhth --port 8080 
+# http://localhost:8080/app/scalar
 ```
+
+![curve](./images/curve.png)
 
 ```shell
 #eg2: evaluate 6 directions, zh<-> th/fr/ru
@@ -78,5 +81,18 @@ bash examples/ikcest22/scripts/generate_all.sh
 
 **5.Submit Result**
 
+this repo baseline:
+
+![baseline](./images/result.png)
+
+official baseline:
+
+![official](./images/baseline_official.png)
+
 [submit-result](https://aistudio.baidu.com/aistudio/competition/detail/477/0/submit-result)
 
+
+
+**6.Optimization**
+
+...
