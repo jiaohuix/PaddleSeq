@@ -22,7 +22,7 @@ pip install -r nmt_data_tools/requirements.txt
 
 ## REF
 
-[1.PaddleNLP](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/simultaneous_translation/stacl)
+[1.PaddleNLP](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/machine_translation)
 
 [2.fairseq](https://github.com/pytorch/fairseq)
 
