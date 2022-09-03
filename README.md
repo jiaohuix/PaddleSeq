@@ -1,71 +1,53 @@
 # PaddleSeq
-## 快速开始
-
-### 1.准备工作
+## Requirements
 
 ```shell
-# 克隆至本地
-git clone https://github.com/MiuGod0126/STACL_Paddle.git
-cd STACL_Paddle
-# 安装依赖
-pip install -r requirements
+git clone https://github.com/MiuGod0126/PaddleSeq.git
+cd PaddleSeq
+pip install -r requirements.txt
+git clone https://github.com/MiuGod0126/nmt_data_tools.git
+pip install -r nmt_data_tools/requirements.txt
 ```
 
-### 2.目录结构
 
-```
-├── ckpt # 权重
-├── configs #配置
-├── dataset # 数据
-│   ├── ccmt21
-│   ├── bstc
-│   ├── enes21
-├── decode # waitk结果文件夹
-├── examples # 回译代码
-├── models #模型文件
-├── reader # 数据加载
-├── paddleseq_cli 
-│   ├── preprocess.py # 二值化
-│   ├── train.py # 训练
-│   ├── valid.py # 评估
-│   ├── generate.py # 生成
-│   ├── config.py # 命令行参数
-├── scripts # 训练、微调、评估、waitk预测、平均权重脚本
-├── tools # al评估
-├── output # 输出文件
-├── requirements.txt # 依赖
-├── README.md
-```
 
-### 3.数据处理
+## Examples
 
-#### 3.1 预处理
+1. IWSLT14 DE EN
+2. [IKCEST22](examples/ikcest22/README.md)
 
-- 分词：对于中文先用jieba分词；然后分别对中英（西）使用moses的normalize-punctuation和tokenizer。（事实上中文不需要用moses，而moses在解码后需要de-tokenizing）。
-- 长度过滤：对于中英，过滤掉长度1-250，并且长度比例超过1:2.5或2.5:1的平行语料；对于英西，过滤掉长度1-250，并且长度比例超过1:1.5或1.5:1的平行语料。
-- 语言标识过滤(lang id)：使用fasttext过滤掉源端或目标端任意一边不匹配语言标识的平行文本。
-- 对于中文的单语，进行了去重，减少了3m。
-- truecase： 对英西两种语言使用truecase，自动判断句中名字、地点等，选择何时的大小写形式，而非直接使用小写，解码后需要de-truecaseing。(中文不用，且此步需要训练模型，处理非常耗时)。
-- BPE(双字节编码)分子词： 对于中英，各自使用32K次操作；对于英西，共享32K的子词词表；其中中->英的词表包含ccmt、bstc的训练集，以及ccmt的单语中文语料。
 
-#### 3.2 二进制
 
-​	本项目支持两种格式的数据输入，一是文本对，二是fairseq的二进制数据（能压缩一半），以bstc为例，若要生成bin数据，命令如下(bin数据的使用见：[这](#bin_load))：
+
+
+
+
+
+
+
+
+
+
+**2.Directory Structure**
+
+**3.Binarize (optional)**
 
 ```shell
 workers=1
-TEXT=dataset/bstc
+TEXT=data_path
+SRC=zh
+TGT=en
 python paddleseq_cli/preprocess.py \
-        --source-lang zh --target-lang en \
-        --srcdict $TEXT/vocab.zh --tgtdict  $TEXT/vocab.en \
-        --trainpref $TEXT/asr.bpe --validpref $TEXT/dev.bpe --testpref $TEXT/dev.bpe  \
-        --destdir data_bin/bstc_bin --thresholdtgt 0 --thresholdsrc 0 \
+        --source-lang $SRC --target-lang $TGT \
+        --srcdict $TEXT/vocab.$SRC --tgtdict  $TEXT/vocab$TGT \
+        --trainpref $TEXT/train --validpref $TEXT/valid --testpref $TEXT/test  \
+        --destdir data-bin --thresholdtgt 0 --thresholdsrc 0 \
         --workers $workers
-#⭐或
+# or
 bash scripts/preprocess.sh
 ```
 
-结果如下所示：
+result:
 
 ```
 data_bin/bstc_bin/
@@ -84,14 +66,11 @@ data_bin/bstc_bin/
     valid.zh-en.zh.idx
 ```
 
-**注意：在windows上支持workers>1,而在aistudio上目前只能用workers=1**
+**Note**: Workers>1 is supported on Windows, but currently only workers=1 can be used on aisudio
 
-### 4.模型训练
-
-以提供的中英ccmt翻译数据为例，可以执行如下命令进行模型训练：
+**4.Training Scripts**
 
 ```shell
-# 单卡或多卡训练（设置ngpus）
 ngpus=4
 python paddleseq_cli/train.py --cfg configs/zhen_ccmt.yaml \
                          --amp \
@@ -102,23 +81,9 @@ python paddleseq_cli/train.py --cfg configs/zhen_ccmt.yaml \
                          --save-dir /root/paddlejob/workspace/output \
                          --log-steps 100 \
                          --max-tokens 4096 \
-#⭐或
-bash scripts/train_full.sh
+
 # 模型验证
 python paddleseq_cli/train.py --cfg configs/zhen_ccmt.yaml  --pretrained ckpt/model_best_zhen --eval
-```
-
-对于中英在ccmt上训练后，还需用zhen_bstc.yaml进行微调：
-
-```
-├── configs #配置文件
-│   ├── enes_un.yaml # 英西整句训练
-│   ├── enes_waitk.yaml # 英西waitk
-│   ├── zhen_ccmt.yaml # 中英整句预训练
-│   ├── zhen_bstc.yaml # 中英整句微调
-│   ├── zhen_bstc_bin.yaml # 中英整句微调(二进制)
-│   ├── zhen_waitk.yaml # 中英waitk
-
 ```
 
 除此之外，当数据量太大的时候有两种方法：
@@ -130,9 +95,7 @@ python paddleseq_cli/train.py --cfg configs/zhen_ccmt.yaml  --pretrained ckpt/mo
 
 
 
-### 5.预测评估
-
-以ccmt21为例，模型训练完成后可以执行以下命令对指定文件中的文本进行翻译，默认将结果输出到output/generate.txt：
+**5.Generation Scripts**
 
 ```shell
 python  paddleseq_cli/generate.py --cfg configs/zhen_ccmt.yaml \
@@ -155,7 +118,7 @@ visualdl --logdir output/vislogs/zhen --port 8080
 
 
 
-###  6.回译
+**6.Backtranslation**
 
 1. (X,Y)训练前向模型F
 
@@ -238,7 +201,7 @@ visualdl --logdir output/vislogs/zhen --port 8080
 
 
 
-## 参考链接
+## REF
 
 [1. STACL: Simultaneous Translation with Implicit Anticipation and Controllable Latency using Prefix-to-Prefix Framework](https://www.aclweb.org/anthology/P19-1289.pdf)
 

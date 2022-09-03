@@ -1,4 +1,4 @@
-epochs=2
+epochs=50
 freq=4 # update frequence
 
 directions=("zh_th" "th_zh" "zh_fr" "fr_zh" "zh_ru" "ru_zh")

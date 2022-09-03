@@ -16,10 +16,15 @@ function build_folder() {
 }
 
 # dowanload datasets
-if [ ! -d datasets ]; then
-  wget $URL
-  tar -xvf datasets.tar.gz
+#if [ ! -d datasets ]; then
+#  wget $URL
+#  tar -xvf datasets.tar.gz
+#fi
+if [ ! -e datasets.tar.gz ];then
+    wget $URL
 fi
+tar -xvf datasets.tar.gz
+
 build_folder $raw_folder
 build_folder $tmp_folder
 build_folder $bpe_folder
@@ -46,7 +51,7 @@ for lang in ${noncentric_langs[@]}
 
 function tokenize() {
     if [ $# -lt 4 ];then
-      echo "usage: bash $0 <infolder> <outfolder> <prefix> <lang>"
+      echo "usage:  $0 <infolder> <outfolder> <prefix> <lang>"
       exit
     fi
     # params, local var prevent changing global var
@@ -70,7 +75,7 @@ function tokenize() {
 
 function learn_apply_bpe() {
     if [ $# -lt 3 ];then
-      echo "usage: bash $0 <folder> <prefix> <lang>"
+      echo "usage:  $0 <folder> <prefix> <lang>"
       exit
     fi
     local folder=$1
