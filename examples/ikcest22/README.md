@@ -93,6 +93,8 @@ official baseline:
 
 
 
-**6.Optimization**
 
-...
+
+## 3.Aistudio⭐
+
+[2022 IKCEST第四届“一带一路”国际大数据竞赛Paddle基线](https://aistudio.baidu.com/aistudio/projectdetail/4490787)
