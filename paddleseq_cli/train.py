@@ -61,7 +61,14 @@ def train_one_epoch(conf,
         sample = {"src_tokens":src_tokens,"prev_tokens":prev_tokens,"tgt_tokens":tgt_tokens}
         # for mixed precision training
         if amp is True:
-            with paddle.amp.auto_cast():
+            # with paddle.amp.auto_cast():
+            with paddle.amp.auto_cast(
+                    enable=True ,
+                    custom_white_list=["layer_norm", "softmax", "gelu"],
+                    custom_black_list=[
+                        "reduce_sum", "c_softmax_with_cross_entropy",
+                        "c_embedding"
+                    ]):
                 logits, sum_cost, avg_cost, token_num = criterion(model, sample)
                 loss = avg_cost
                 scaled = scaler.scale(loss)

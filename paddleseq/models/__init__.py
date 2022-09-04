@@ -5,21 +5,26 @@ from .seq_generator import SequenceGenerator
 import paddleseq.models as models
 from paddleseq.reader import prep_vocab
 from paddleseq.checkpoint_utils import freeze_by_names,unfreeze_by_names
-import yacs
+from yacs.config import CfgNode
+
 
 def build_model(conf_or_path,is_test=False):
-    if isinstance(conf_or_path,yacs.config.CfgNode):
+    is_path = False
+    if isinstance(conf_or_path,CfgNode):
         conf = conf_or_path
-    elif isinstance(conf_or_path,str): # load args
+    elif isinstance(conf_or_path,str) and os.path.isfile(os.path.join(conf_or_path,'model.args')): # load args
         args_path = os.path.join(conf_or_path,'model.args')
         assert os.path.isfile(args_path), "conf path should not be empty!"
         conf = paddle.load(args_path)["conf"]
+        is_path = True
     else:
-        print("conf_or_path error.")
+        raise ValueError("conf_or_path is is neither CfgNode nor pretrained path error.")
 
     model_args,gen_args=conf.model,conf.generate
     src_vocab, tgt_vocab = prep_vocab(conf)
-    model_path=os.path.join(model_args.init_from_params,'model.pdparams')
+
+    pretrained_path =  conf_or_path if is_path else  model_args.init_from_params
+    model_path=os.path.join(pretrained_path,'model.pdparams')
     model_path=None if not os.path.exists(model_path) else model_path
     model=getattr(models,model_args.model_name)(
                                         is_test=is_test,
