@@ -16,3 +16,4 @@ for ((i=0;i<${#directions[@]};i++))
   done
 
 echo "all done"
+

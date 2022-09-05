@@ -18,3 +18,4 @@ for ((i=0;i<${#directions[@]};i++))
 zip -r trans_result.zip *.rst
 
 echo "all done"
+
