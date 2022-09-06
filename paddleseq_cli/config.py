@@ -133,7 +133,7 @@ def get_config(args):
         conf.train.num_workers = args.num_workers
     # Model parameters
     if args.arch:
-        conf.model.model_name = args.model_name
+        conf.model.model_name = args.arch
     if args.drop:
         conf.model.dropout = args.drop
     if args.pretrained:
