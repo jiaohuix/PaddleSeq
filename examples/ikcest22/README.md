@@ -43,11 +43,24 @@ ls examples/ikcest22/configs/
 bash examples/ikcest22/scripts/train_all.sh
 ```
 
+```shell
+# eg3: resume training from checkpoint
+# replace epoch_xx to your checkpoint dir
+python paddleseq_cli/train.py -c output/ckpt_zhth/epoch_xx/model.yaml
+```
+
 **3. Evaluation Scripts**
 
 ```shell
 #eg1: evaluate zh->th (default ckpt: output/ckpt_zhth/epoch_final)
 python paddleseq_cli/generate.py -c examples/ikcest22/configs/zh_th.yaml --pretrained output/ckpt_zhth/epoch_final --test-pref datasets/bpe/zh_th/valid
+
+```
+
+```shell
+#eg2 : average checkpoints (k=2)
+# There must be at least k models_best_xx under path "output/ckpt_zhth/"
+python scripts/average_checkpoints.py --inputs output/ckpt_zhth/ --output output/ckpt_zhth/avg2 --num-ckpts  2
 ```
 
 ```shell
@@ -59,7 +72,7 @@ visualdl --logdir output/vislogs/zhth --port 8080
 ![curve](./images/curve.png)
 
 ```shell
-#eg2: evaluate 6 directions, zh<-> th/fr/ru
+#eg4: evaluate 6 directions, zh<-> th/fr/ru
 bash  examples/ikcest22/scripts/evaluate_all.sh
 ```
 
