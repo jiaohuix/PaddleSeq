@@ -2,17 +2,24 @@ import os
 import paddle
 import shutil
 import numpy as np
-from collections import OrderedDict
 
+def save_yaml(conf,outfile):
+    conf_text = f"{conf}"
+    with open(outfile, 'w') as fw:
+        fw.write(conf_text)
 
 def save_model(conf,model, optimizer,save_dir,nbest=5):
     if not os.path.exists(save_dir): os.makedirs(save_dir)
+    # save model and optimizer params
     paddle.save(model.state_dict(), os.path.join(save_dir, "model.pdparams"))
     paddle.save(optimizer.state_dict(), os.path.join(save_dir, "model.pdopt"))
-    # save args
-    args_dict = OrderedDict()
-    args_dict["conf"] = conf
-    paddle.save(args_dict,os.path.join(save_dir, "model.args"))
+    # update config
+    conf.defrost()
+    conf.model.init_from_params = save_dir
+    conf.train.resume = save_dir
+    conf.freeze()
+    # save config
+    save_yaml(conf,os.path.join(save_dir, "model.yaml"))
 
 
     ''' save n best and drop old best'''

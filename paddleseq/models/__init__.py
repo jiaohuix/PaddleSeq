@@ -9,22 +9,19 @@ from yacs.config import CfgNode
 
 
 def build_model(conf_or_path,is_test=False):
-    is_path = False
     if isinstance(conf_or_path,CfgNode):
         conf = conf_or_path
-    elif isinstance(conf_or_path,str) and os.path.isfile(os.path.join(conf_or_path,'model.args')): # load args
-        args_path = os.path.join(conf_or_path,'model.args')
+    elif isinstance(conf_or_path,str) and os.path.isfile(os.path.join(conf_or_path,'model.yaml')): # load config
+        args_path = os.path.join(conf_or_path,'model.yaml')
         assert os.path.isfile(args_path), "conf path should not be empty!"
-        conf = paddle.load(args_path)["conf"]
-        is_path = True
+        conf = CfgNode.load_cfg(open(args_path, encoding="utf-8"))
     else:
         raise ValueError("conf_or_path is is neither CfgNode nor pretrained path error.")
 
     model_args,gen_args=conf.model,conf.generate
     src_vocab, tgt_vocab = prep_vocab(conf)
 
-    pretrained_path =  conf_or_path if is_path else  model_args.init_from_params
-    model_path=os.path.join(pretrained_path,'model.pdparams')
+    model_path=os.path.join(model_args.init_from_params,'model.pdparams')
     model_path=None if not os.path.exists(model_path) else model_path
     model=getattr(models,model_args.model_name)(
                                         is_test=is_test,

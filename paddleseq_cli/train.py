@@ -349,6 +349,12 @@ def main_worker(*args):
         metric.reset()
         # evaluate model on valid data after one epoch
         val_loss, val_nll_loss, val_ppl, dev_bleu = validation(conf, dev_loader, model, criterion, logger)
+
+        # update config
+        conf.defrost()
+        conf.train.last_epoch = epoch
+        conf.train.last_step = global_step_id
+        conf.freeze()
         # save best model state
         if (best_bleu < dev_bleu) and (local_rank == 0):
             best_bleu = dev_bleu
