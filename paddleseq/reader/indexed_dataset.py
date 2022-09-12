@@ -21,6 +21,15 @@ _code_to_dtype = {
     10: np.uint64,
 }
 
+def avoid_int32_overflow(np_val):
+    # avoid_int32_overflow
+    min_val = -2147483648
+    max_val = 2147483647
+    np_val = np.array(np_val,dtype="int64")
+    if np_val<0:
+        np_val = (np_val- min_val) + max_val + 1
+    return np_val
+
 def best_fitting_int_dtype(
     max_int_to_represent,
 ) -> Union[np.uint16, np.uint32, np.int64]:
@@ -226,6 +235,7 @@ class MMapIndexedDataset(Dataset):
     @lru_cache(maxsize=8)
     def __getitem__(self, i):
         ptr, size = self._index[i]
+        ptr = avoid_int32_overflow(ptr)
         np_array = np.frombuffer(
             self._bin_buffer, dtype=self._index.dtype, count=size, offset=ptr
         )
