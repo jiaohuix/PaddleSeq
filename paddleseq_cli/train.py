@@ -95,10 +95,11 @@ def train_one_epoch(conf,
         # log
         if (batch_id + 1) % log_steps == 0:
             avg_bsz = sentences / (batch_id + 1)
-            bsz = round(avg_bsz * update_freq,1)
-            avg_total_steps = int(len(dataloader.dataset) // avg_bsz // dist.get_world_size())  # Number of iterations of each epoch in a single card
-            cur_steps=avg_total_steps*(epoch-1)+batch_id+1 # current forward steps (single card)
-            num_updates = (cur_steps//update_freq) * dist.get_world_size()
+            bsz = round(avg_bsz * update_freq * dist.get_world_size() ,1)
+            avg_total_steps = int(len(dataloader.dataset) // dist.get_world_size() // avg_bsz )  # Number of iterations of each epoch in a single card
+            cur_steps=avg_total_steps * (epoch-1) + batch_id + 1 # current forward steps (single card)
+            # num_updates = (cur_steps//update_freq) *  dist.get_world_size()
+            num_updates = (cur_steps//update_freq)
             loss, nll_loss, ppl, gnorm = metric.accumulate()
 
             logger.info(
@@ -234,9 +235,9 @@ def early_stop(conf,optimizer,val_loss,lowest_val_loss,num_runs,gnorm,global_ste
                 stop_flag=True
 
     # 3.early stop for gradient
-    if float(gnorm) >= float("inf") or math.isnan(float(gnorm)):
-        logger.info(f"early stop since grdient norm is inf.")
-        stop_flag=True
+    # if float(gnorm) >= float("inf") or math.isnan(float(gnorm)):
+    #     logger.info(f"early stop since grdient norm is inf.")
+    #     stop_flag=True
 
     # 4.early stop for max_update
     if (global_step_id > conf.train.max_update) and (conf.train.max_update!=-1):

@@ -46,6 +46,22 @@ def best_fitting_int_dtype(
         # https://github.com/numpy/numpy/issues/5745
 
 
+def infer_dataset_impl(path):
+    if MMapIndexedDataset.exists(path):
+        with open(index_file_path(path), "rb") as f:
+            magic = f.read(8)
+            if magic == MMapIndexedDataset.Index._HDR_MAGIC[:8]:
+                return "mmap"
+    else:
+        return None
+
+
+def make_dataset(path, impl, fix_lua_indexing=False, dictionary=None):
+    if impl == "mmap" and MMapIndexedDataset.exists(path):
+        print("mmap-------------")
+        return MMapIndexedDataset(path)
+    return None
+
 class StrEnumMeta(EnumMeta):
     # this is workaround for submitit pickling leading to instance checks failing in hydra for StrEnum, see
     # https://github.com/facebookresearch/hydra/issues/1156
@@ -104,7 +120,7 @@ def data_file_path(prefix_path):
     return prefix_path + ".bin"
 
 class MMapIndexedDataset(Dataset):
-    class Index: # 处理idx文件，返回某样本的ptr（首地址）和size
+    class Index:  # 处理idx文件，返回某样本的ptr（首地址）和size
         _HDR_MAGIC = b"MMIDIDX\x00\x00"
 
         @classmethod
@@ -273,7 +289,7 @@ def get_indexed_dataset_to_local(path) -> str:
     return local_path
 
 
-# 写数据
+# write binary data
 class MMapIndexedDatasetBuilder:
     def __init__(self, out_file, dtype=np.int64):
         self._data_file = open(out_file, "wb")
@@ -287,7 +303,7 @@ class MMapIndexedDatasetBuilder:
 
     def merge_file_(self, another_file):
         # Concatenate index
-        index = MMapIndexedDataset.Index(index_file_path(another_file)) # 这里？
+        index = MMapIndexedDataset.Index(index_file_path(another_file))
         assert index.dtype == self._dtype
         for size in index.sizes:
             self._sizes.append(size)
@@ -295,7 +311,7 @@ class MMapIndexedDatasetBuilder:
         # Concatenate data
         with open(data_file_path(another_file), "rb") as f:
             shutil.copyfileobj(f, self._data_file)
-    # 这
+
     def finalize(self, index_file):
         self._data_file.close()
         with MMapIndexedDataset.Index.writer(index_file, self._dtype) as index:

@@ -9,10 +9,12 @@ TRG=$2
 DETOK=scripts/detokenizer.perl
 DETRUE=scripts/detruecase.perl
 
-# detokenize
-cat $prefix.$TRG | perl $DETOK  -l $TRG > $prefix.detok.$TRG
-
 # detruecase
-perl $DETRUE  < $prefix.detok.$TRG > $prefix.detrue.$TRG
-
+perl $DETRUE  < $prefix.$TRG > $prefix.detrue.$TRG
 echo "write to $prefix.detrue.$TRG"
+
+# detokenize
+cat  $prefix.detrue.$TRG | perl $DETOK  -l $TRG > $prefix.detok.$TRG
+echo "write to $prefix.detok.$TRG"
+
+echo "all done!"
