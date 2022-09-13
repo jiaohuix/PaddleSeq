@@ -22,7 +22,7 @@ def save_model(conf,model, optimizer,save_dir,nbest=5):
     save_yaml(conf,os.path.join(save_dir, "model.yaml"))
 
 
-    ''' save n best and drop old best'''
+    ''' Keep the best n ckpts and eliminate the worst ckpt.'''
     if save_dir.find('best')!=-1:
         base_dir=os.path.dirname(save_dir)
         all_names=os.listdir(base_dir)
