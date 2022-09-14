@@ -658,8 +658,9 @@ def base_architecture(args):
     return args
 
 cfgs = ['src_vocab', 'tgt_vocab']
+from paddleseq.models import register_model_arch
 
-
+@register_model_arch("transformer_iwslt_de_en")
 def transformer_iwslt_de_en(is_test=False, pretrained_path=None, **kwargs):
     for cfg in cfgs: assert cfg in kwargs, f'missing argument:{cfg}'
     model_args = dict(encoder_layers=6,
@@ -673,7 +674,7 @@ def transformer_iwslt_de_en(is_test=False, pretrained_path=None, **kwargs):
     model = _create_transformer('transformer_iwslt_de_en', is_test, pretrained_path, model_args)
     return model
 
-
+@register_model_arch("transformer_base")
 def transformer_base(is_test=False, pretrained_path=None, **kwargs):
     for cfg in cfgs: assert cfg in kwargs, f'missing argument:{cfg}'
     model_args = dict(encoder_layers=6,
@@ -687,7 +688,7 @@ def transformer_base(is_test=False, pretrained_path=None, **kwargs):
     return model
 
 
-
+@register_model_arch("transformer_big")
 def transformer_big(is_test=False, pretrained_path=None, **kwargs):
     for cfg in cfgs: assert cfg in kwargs, f'missing argument:{cfg}'
     model_args = dict(encoder_layers=6,

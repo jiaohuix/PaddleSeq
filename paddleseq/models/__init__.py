@@ -1,12 +1,38 @@
 import os
 import paddle
-from .transformer import *
+import importlib
 from .seq_generator import SequenceGenerator
-import paddleseq.models as models
 from paddleseq.reader import prep_vocab
 from paddleseq.checkpoint_utils import freeze_by_names,unfreeze_by_names
 from yacs.config import CfgNode
 
+MODEL_ARCH_REGISTRY={}
+
+# 注册模型函数
+def register_model_arch(arch_name):
+    def register_model_arch_fn(fn):
+        if fn in MODEL_ARCH_REGISTRY:
+            raise ValueError("Cannot register duplicate model architecture ({})".format(arch_name))
+        MODEL_ARCH_REGISTRY[arch_name] = fn
+        return fn
+
+    return register_model_arch_fn
+
+
+# 导入注册的模块
+def import_models(models_dir, namespace):
+    for file in os.listdir(models_dir):
+        path = os.path.join(models_dir, file)
+        if (
+                not file.startswith("_")
+                and not file.startswith(".")
+                and (file.endswith(".py") or os.path.isdir(path))
+        ):
+            model_name = file[: file.find(".py")] if file.endswith(".py") else file
+            importlib.import_module(namespace + "." + model_name)
+
+models_dir = os.path.dirname(__file__)
+import_models(models_dir, namespace="paddleseq.models")
 
 def build_model(conf_or_path,is_test=False):
     if isinstance(conf_or_path,CfgNode):
@@ -23,13 +49,13 @@ def build_model(conf_or_path,is_test=False):
 
     model_path=os.path.join(model_args.init_from_params,'model.pdparams')
     model_path=None if not os.path.exists(model_path) else model_path
-    model=getattr(models,model_args.model_name)(
-                                        is_test=is_test,
-                                        pretrained_path=model_path,
-                                        src_vocab = src_vocab,
-                                        tgt_vocab = tgt_vocab,
-                                        max_length=model_args.max_length,
-                                        dropout=model_args.dropout)
+    model=MODEL_ARCH_REGISTRY[model_args.model_name](
+                                    is_test=is_test,
+                                    pretrained_path=model_path,
+                                    src_vocab = src_vocab,
+                                    tgt_vocab = tgt_vocab,
+                                    max_length=model_args.max_length,
+                                    dropout=model_args.dropout)
 
     # 1.about embed dict
     # if model_path is not None:
