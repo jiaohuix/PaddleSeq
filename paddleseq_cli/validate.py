@@ -85,7 +85,10 @@ def validation(conf, dataloader, model, criterion, logger):
         if report_bleu:
             # sacre_info = str(sacrebleu.corpus_bleu(hypos_ls,[refs_ls]))
             # dev_bleu = float(sacre_info.split()[2])
-            dev_bleu = round(scorer.score() * 100,3)
+            try:
+                dev_bleu = round(scorer.score() * 100,3)
+            except:
+                dev_bleu = 0.
             bleu_msg = f"Eval | BLEU Score: {dev_bleu:.3f}"
 
 
