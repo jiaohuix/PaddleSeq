@@ -1,6 +1,10 @@
-directions=("zh_ar" "ar_zh")
-ckpts=("output/ckpt_zhar/epoch_final"
-        "output/ckpt_arzh/epoch_final")
+directions=("zh_th" "th_zh" "zh_fr" "fr_zh" "zh_ru" "ru_zh")
+ckpts=("output/ckpt_zhth/epoch_final"
+        "output/ckpt_thzh/epoch_final"
+        "output/ckpt_zhfr/epoch_final"
+        "output/ckpt_frzh/epoch_final"
+        "output/ckpt_zhru/epoch_final"
+        "output/ckpt_ruzh/epoch_final")
 
 for ((i=0;i<${#directions[@]};i++))
   do  
