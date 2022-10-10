@@ -1,5 +1,5 @@
 directions=("zh_ar" "ar_zh")
-data_paths=("zh_ar" "ar_zh")
+data_paths=("zh_ar" "zh_ar")
 ckpts=("output/ckpt_zhar/epoch_final"
         "output/ckpt_arzh/epoch_final")
 
