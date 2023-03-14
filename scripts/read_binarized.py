@@ -10,8 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(__dir__,"../")))
 import argparse
 import logging
 from paddlenlp.data import Vocab
-from paddleseq.reader import data_utils
-import paddleseq.reader.indexed_dataset as indexed_dataset
+from ppseq.reader import data_utils
+import ppseq.reader.indexed_dataset as indexed_dataset
 logger = logging.getLogger(__name__)
 
 

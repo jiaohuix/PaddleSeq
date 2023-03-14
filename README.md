@@ -2,6 +2,12 @@
 
 For Machine Translation using PaddlePaddle.
 
+## Update:
+
+23/3/14:  add 2 criterions:  rdrop、simcut，change the 'criterion ' in the configuration file to take effect. (development branch)
+
+
+
 ## Requirements
 
 ```shell
@@ -16,7 +22,7 @@ pip install -r nmt_data_tools/requirements.txt
 
 ## Examples
 
-1. IWSLT14 DE EN
+1. [IWSLT14 DE EN](./examples/iwslt14)  (development branch)
 2. ⭐[IKCEST22](examples/ikcest22/README.md)
 
 
