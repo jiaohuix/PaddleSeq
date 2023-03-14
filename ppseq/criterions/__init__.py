@@ -24,8 +24,8 @@ for file in sorted(os.listdir(os.path.dirname(__file__))):
 def build_criterion(criterion_args):
     criterion_name = criterion_args.name
     criterion_args.pop("name")
-    names = ",".join(CRITERION_REGISTRY.keys())
-    assert criterion_name in CRITERION_REGISTRY.keys(), f"Only the following criteria are supported: {names}"
+    names = ", ".join(CRITERION_REGISTRY.keys())
+    assert criterion_name in CRITERION_REGISTRY.keys(), f"Criterion: {criterion_name} not exists, only support:  {names}"
 
     criterion = CRITERION_REGISTRY[criterion_name](**criterion_args)
     return criterion

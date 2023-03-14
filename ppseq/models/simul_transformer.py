@@ -268,7 +268,7 @@ class SimultaneousTransformer(nn.Layer):
                     uniform_(m.bias)
             elif any(x in n for x in ["out_proj"]):
                 xavier_uniform_(m.weight)
-            elif any(x in n for x in ["linear1","linear2"]): # 防止linear12未被初始化
+            elif any(x in n for x in ["linear1","linear2"]):
                 uniform_(m.weight)
                 if m.bias is not None:
                     uniform_(m.bias)
@@ -448,7 +448,6 @@ def base_architecture(args):
 
 
 cfgs = ['src_vocab_size', 'tgt_vocab_size', 'waitk']
-
 from ppseq.models import register_model_arch
 
 @register_model_arch("transformer_simul_base")
@@ -477,8 +476,8 @@ def transformer_simul_big(is_test=False, pretrained_path=None, **kwargs):
     model = _create_transformer('transformer_simul_big', is_test, pretrained_path, model_args)
     return model
 
-@register_model_arch("transformer_base_share")
-def transformer_base_share(is_test=False, pretrained_path=None, **kwargs):
+@register_model_arch("transformer_simul_base_share")
+def transformer_simul_base_share(is_test=False, pretrained_path=None, **kwargs):
     for cfg in cfgs: assert cfg in kwargs, f'missing argument:{cfg}'
     model_args = dict(encoder_layers=6,
                       decoder_layers=6,

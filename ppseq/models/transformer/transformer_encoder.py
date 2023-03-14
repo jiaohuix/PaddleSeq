@@ -22,7 +22,7 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
         attn_dropout = kwargs.get("dropout") if kwargs.get("attn_dropout") is None else kwargs.get("attn_dropout")
 
         del self.linear1,self.linear2,self.dropout
-        self.self_attn = MultiHeadAttentionWithInit(use_deepnorm,embed_dim=d_model, num_heads=nhead, dropout=attn_dropout)
+        self.self_attn = MultiHeadAttentionWithInit(embed_dim=d_model, num_heads=nhead, dropout=attn_dropout)
 
         self.mlp = Mlp(d_model=d_model,
                       dim_feedforward=dim_feedforward,

@@ -7,7 +7,7 @@ class CrossEntropyWithRdrop(CrossEntropyCriterionBase):
     """
     """
     def __init__(self,
-                 label_smooth_eps=None,
+                 label_smooth_eps=0.1,
                  pad_idx=1,
                  alpha=5):
         super(CrossEntropyWithRdrop,self).__init__(label_smooth_eps,pad_idx)
@@ -25,7 +25,6 @@ class CrossEntropyWithRdrop(CrossEntropyCriterionBase):
         # 2.rdrop loss
         if model.training:
             avg_cost = self.get_rdrop_loss(model, sample, logits, avg_cost)
-            print(avg_cost)
 
         return logits, sum_cost, avg_cost, token_num
 

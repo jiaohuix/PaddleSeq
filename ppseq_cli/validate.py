@@ -65,10 +65,9 @@ def validation(conf, dataloader, model, criterion, logger):
                     samples = {'id': samples_id, 'nsentences': bsz,
                                'net_input': {'src_tokens': paddle.cast(src_tokens, dtype='int64')},
                                'target': tgt_tokens}
-                    generator = SequenceGenerator(model=model if not isinstance(model,paddle.DataParallel) else model._layers,
-                                                  vocab_size=conf.model.tgt_vocab_size, beam_size=conf.generate.beam_size,
-                                                  search_strategy=conf.generate.search_strategy)  # 可以加些参数
-                    hypos = generator.generate(samples, prefix_tokens=None)
+                    generator = SequenceGenerator(model=model if not isinstance(model,paddle.DataParallel) else model._layers, vocab_size=conf.model.tgt_vocab_size, beam_size=conf.generate.beam_size,
+                                              search_strategy=conf.generate.search_strategy)  # 可以加些参数
+                    hypos = generator.generate(samples)
                     pred_tokens = [hypo[0]["tokens"] for hypo in hypos]
                 for hypo_tokens, tgt_tokens in zip(pred_tokens, tgt_tokens):
                     hypo_str = to_string(hypo_tokens, tgt_vocab, bpe_symbol="subword_nmt",

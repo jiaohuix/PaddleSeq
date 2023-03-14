@@ -12,7 +12,7 @@ class CrossEntropyWithDual(CrossEntropyCriterionBase):
                  alpha = 1,
                  label_smooth_eps=0.1,
                  pad_idx=1,
-                 max_epochs=None):
+                 max_epochs=50):
         super(CrossEntropyWithDual,self).__init__(label_smooth_eps,pad_idx)
         self.pad_idx =pad_idx
         self.alpha = alpha # backward loss

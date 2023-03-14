@@ -25,8 +25,8 @@ class TransformerDecoderLayer(nn.TransformerDecoderLayer):
         attn_dropout = kwargs.get("dropout") if kwargs.get("attn_dropout") is None else kwargs.get("attn_dropout")
 
         del self.linear1,self.linear2,self.dropout
-        self.self_attn = MultiHeadAttentionWithInit(use_deepnorm,embed_dim=d_model, num_heads=nhead, dropout=attn_dropout)
-        self.cross_attn =MultiHeadAttentionWithInit(use_deepnorm,embed_dim=d_model, num_heads=nhead, dropout=attn_dropout)
+        self.self_attn = MultiHeadAttentionWithInit(embed_dim=d_model, num_heads=nhead, dropout=attn_dropout)
+        self.cross_attn =MultiHeadAttentionWithInit(embed_dim=d_model, num_heads=nhead, dropout=attn_dropout)
         if self.no_encoder_attn:
             del self.cross_attn,self.norm2
         self.mlp = Mlp(d_model=d_model,

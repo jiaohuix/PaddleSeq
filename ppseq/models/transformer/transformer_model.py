@@ -13,15 +13,12 @@ from ppseq.models.transformer import (
     TransformerDecoder,
 )
 from ppseq.modules.deepnet import xavier_uniform_,xavier_uniform_with_gain,deepnorm_init
-from ppseq.models import SequenceGenerator
-
 '''
 22/9/29 NEW ADD:
 1.deepnorm √
 2.activation√
 3.layerdrop√
 '''
-
 
 class Transformer(nn.Layer):
     def __init__(self,
@@ -55,7 +52,6 @@ class Transformer(nn.Layer):
         self.src_vocab_size = len(src_vocab)
         self.tgt_vocab_size = len(tgt_vocab)
         self.emb_dim = d_model
-        self.max_length = max_length
         self.bos_id = bos_id
         self.pad_id = pad_id
         self.eos_id = eos_id
@@ -77,7 +73,17 @@ class Transformer(nn.Layer):
         self.dim_feedforward = dim_feedforward
         self.inf = 1e9
         # embedding
-        src_embed_tokens, src_embed_positions, tgt_embed_tokens, tgt_embed_positions = self.build_embedding()
+        src_embed_tokens = Embedding(num_embeddings=len(src_vocab),embedding_dim=d_model,padding_idx=pad_id)
+        pos_length = max_length + self.pad_id + 1
+        src_embed_positions = PositionalEmbeddingLeanable(pad_idx=pad_id,learnable=learnable_pos,emb_dim=d_model, max_length=pos_length)
+        tgt_embed_positions = PositionalEmbeddingLeanable(pad_idx=pad_id,learnable=learnable_pos,emb_dim=d_model, max_length=pos_length)
+        if share_embed:
+            assert len(src_vocab) == len(tgt_vocab), (
+                "Vocabularies in source and target should be same for weight sharing."
+            )
+            tgt_embed_tokens = src_embed_tokens
+        else:
+            tgt_embed_tokens = Embedding(num_embeddings=len(tgt_vocab), embedding_dim=d_model, padding_idx=pad_id)
         self.embed_scale = d_model ** 0.5
 
         # encoder
@@ -125,29 +131,6 @@ class Transformer(nn.Layer):
             self.apply(deepnorm_init_fn)
         # else:
         #     self.apply(self.reset_paramaters)
-
-        # generator
-        self.generator = SequenceGenerator(
-                                      model=self,
-                                      vocab_size=self.tgt_vocab_size,
-                                      beam_size=5)
-
-    def build_embedding(self):
-        # embedding
-        src_embed_tokens = Embedding(num_embeddings=len(self.src_vocab), embedding_dim=self.d_model, padding_idx=self.pad_id)
-        pos_length = self.max_length + self.pad_id + 1
-        src_embed_positions = PositionalEmbeddingLeanable(pad_idx=self.pad_id, learnable=self.learnable_pos, emb_dim=self.d_model,
-                                                          max_length=pos_length)
-        tgt_embed_positions = PositionalEmbeddingLeanable(pad_idx=self.pad_id, learnable=self.learnable_pos, emb_dim=self.d_model,
-                                                          max_length=pos_length)
-        if self.share_embed:
-            assert len(self.src_vocab) == len(self.tgt_vocab), (
-                "Vocabularies in source and target should be same for weight sharing."
-            )
-            tgt_embed_tokens = src_embed_tokens
-        else:
-            tgt_embed_tokens = Embedding(num_embeddings=len(self.tgt_vocab), embedding_dim=self.d_model, padding_idx=self.pad_id)
-        return src_embed_tokens, src_embed_positions, tgt_embed_tokens, tgt_embed_positions
 
     def reset_paramaters(self,m,n): # model,name   # initialize attention
         if isinstance(m,nn.Linear):
@@ -236,8 +219,6 @@ class Transformer(nn.Layer):
 
         return logits, avg_attn_scores
 
-    def generate(self):
-        pass
 
 def _create_transformer(variant, is_test, pretrained_path, args):
     model = Transformer(**args)
@@ -269,9 +250,7 @@ def base_architecture(args):
 
 cfgs = ['src_vocab', 'tgt_vocab']
 
-
 from ppseq.models import register_model_arch
-
 @register_model_arch("transformer_iwslt_de_en")
 def transformer_iwslt_de_en(is_test=False, pretrained_path=None, **kwargs):
     for cfg in cfgs: assert cfg in kwargs, f'missing argument:{cfg}'
@@ -303,7 +282,6 @@ def transformer_iwslt_de_en_norm(is_test=False, pretrained_path=None, **kwargs):
     model_args = base_architecture(model_args)
     model = _create_transformer('transformer_iwslt_de_en_norm', is_test, pretrained_path, model_args)
     return model
-
 
 @register_model_arch("transformer_base")
 def transformer_base(is_test=False, pretrained_path=None, **kwargs):

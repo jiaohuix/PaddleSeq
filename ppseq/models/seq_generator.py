@@ -331,7 +331,7 @@ class SequenceGenerator(nn.Layer):
             # Shape of eos_mask: (batch size, beam size)
             eos_mask = cand_indices.equal(self.eos) & cand_scores.not_equal(paddle.to_tensor(-math.inf))
             eos_mask = paddle.cast(eos_mask, dtype='float32')
-            eos_mask[:, :beam_size][cands_to_ignore] = 0. 
+            eos_mask[:, :beam_size][cands_to_ignore] = 0.
             eos_mask = paddle.cast(eos_mask, dtype='bool')
             # only consider eos when it's among the top beam_size indices
             # Now we know what beam item(s) to finish
@@ -655,5 +655,4 @@ class SequenceGenerator(nn.Layer):
         if finalized_sent_len == beam_size or step == max_len:
             return True
         return False
-
 

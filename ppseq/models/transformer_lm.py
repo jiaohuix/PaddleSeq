@@ -188,7 +188,6 @@ def base_lm_architecture(args):
     return args
 
 cfgs = ['src_vocab']
-
 from ppseq.models import register_model_arch
 
 # GPT-1
@@ -277,6 +276,7 @@ def transformer_lm_gpt3_small(is_test=False, pretrained_path=None, **kwargs):
     model_args = base_lm_architecture(model_args)
     model = _create_transformer('transformer_lm_gpt3_small', is_test, pretrained_path, model_args)
     return model
+
 
 @register_model_arch("transformer_lm_gpt3_medium")
 def transformer_lm_gpt3_medium(is_test=False, pretrained_path=None, **kwargs):

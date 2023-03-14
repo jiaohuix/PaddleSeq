@@ -209,9 +209,6 @@ moe配置:
 5.层数：2层？3层？
 6.容量
 '''
-
-from ppseq.models import register_model_arch
-
 # @register_model_arch("transformer_iwslt_de_en")
 # def transformer_iwslt_de_en(is_test=False, pretrained_path=None, **kwargs):
 #     for cfg in cfgs: assert cfg in kwargs, f'missing argument:{cfg}'
@@ -227,6 +224,7 @@ from ppseq.models import register_model_arch
 #     model_args = base_architecture(model_args)
 #     model = _create_transformer('transformer_iwslt_de_en', is_test, pretrained_path, model_args)
 #     return model
+from ppseq.models import register_model_arch
 
 
 @register_model_arch("transformer_de_en_naive")
@@ -266,7 +264,6 @@ def transformer_de_en_gshard(is_test=False, pretrained_path=None, **kwargs):
     model_args = base_architecture(model_args)
     model = _create_transformer('transformer_de_en_gshard', is_test, pretrained_path, model_args)
     return model
-
 
 @register_model_arch("transformer_de_en_switch")
 def transformer_de_en_switch(is_test=False, pretrained_path=None, **kwargs):

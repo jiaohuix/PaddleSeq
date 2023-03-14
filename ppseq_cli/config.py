@@ -5,7 +5,7 @@ from yacs.config import CfgNode
 
 def get_arguments(return_parser=False):
     """return argumeents, this will overwrite the config after loading yaml file"""
-    parser = argparse.ArgumentParser(description="PaddleSeq", add_help=True)
+    parser = argparse.ArgumentParser(description="Simultranslation", add_help=True)
     parser.add_argument("-c", "--cfg", default=None, type=str,required=True, metavar="FILE", help="yaml file path")
 
     # distributed training parameters
@@ -60,7 +60,7 @@ def get_arguments(return_parser=False):
     parser.add_argument("--patience", default=None, type=int, help="patience epochs for Plateau LR scheduler")
     parser.add_argument("--force-anneal", default=None, type=int, help="anneal epochs for Plateau LR scheduler")
 
-    # Augmentation parameters
+    # # Augmentation parameters
     # parser.add_argument("--smoothing", default=None, type=float, help="Label smoothing")
 
     # Generation parameters
@@ -89,7 +89,7 @@ def get_config(args):
         conf.ngpus = len(paddle.static.cuda_places()) if args.ngpus == -1 else args.ngpus
     if args.eval:
         conf.eval = args.eval
-    conf.train.eval_beam = args.eval_beam
+    conf.eval_beam = args.eval_beam
     if args.update_freq:
         conf.train.update_freq = args.update_freq
     if args.max_epoch:
@@ -166,7 +166,7 @@ def get_config(args):
         conf.learning_strategy.scheduler.plateau.patience = args.patience
     if args.force_anneal:
         conf.learning_strategy.scheduler.plateau.force_anneal = args.force_anneal
-    # Augmentation parameters
+    # # Augmentation parameters
     # if args.smoothing:
     #     conf.learning_strategy.label_smooth_eps = args.smoothing
     # Generation parameters

@@ -29,9 +29,9 @@ setup(
         "sacremoses==0.0.53",
         "sacrebleu==1.5",
         "fastcore==1.5.21",
-        "pandas",
-        "paddlenlp>=2.1.1",
-        "tqdm",
+        "pandas==1.1.5",
+        "paddlenlp==2.1.1",
+        "tqdm>=4.27.0",
     ],
     entry_points={
         "console_scripts": [
@@ -41,4 +41,3 @@ setup(
         ],
     }
 )
-

@@ -50,9 +50,10 @@ def build_model(conf_or_path,is_test=False):
     model_path=os.path.join(model_args.init_from_params,'model.pdparams')
     model_path=None if not os.path.exists(model_path) else model_path
 
-    names = ",".join(MODEL_ARCH_REGISTRY.keys())
-    assert model_args.model_name in MODEL_ARCH_REGISTRY.keys(), f"Only the following model arch are supported: {names}"
-    model=MODEL_ARCH_REGISTRY[model_args.model_name](
+    model_name = model_args.model_name
+    names = ", ".join(MODEL_ARCH_REGISTRY.keys())
+    assert model_name in MODEL_ARCH_REGISTRY.keys(), f"Model arch: {model_name} not exists, only support: {names}"
+    model=MODEL_ARCH_REGISTRY[model_name](
                                     is_test=is_test,
                                     pretrained_path=model_path,
                                     src_vocab = src_vocab,
@@ -72,3 +73,8 @@ def build_model(conf_or_path,is_test=False):
     # freeze_by_names(model,exclude_layers=["output_projection"])
 
     return model
+
+
+
+
+
