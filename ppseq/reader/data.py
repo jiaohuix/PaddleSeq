@@ -222,7 +222,7 @@ def get_sampler(conf, dataset, mode='train'):
 
 def prep_loader(conf, dataset, mode='train', multi_process=False):
     assert mode in ['train', 'dev', 'test']
-    data_args, model_args, strategy_args, train_args, gen_args = conf.data, conf.model, conf.learning_strategy, conf.train, conf.generate
+    data_args, model_args, train_args, gen_args = conf.data, conf.model, conf.train, conf.generate
     # load vocab
     src_vocab, tgt_vocab = prep_vocab(conf)
     lang_ids = None

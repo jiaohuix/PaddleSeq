@@ -52,7 +52,7 @@ def build_model(conf_or_path,is_test=False):
 
     model_name = model_args.model_name
     names = ", ".join(MODEL_ARCH_REGISTRY.keys())
-    assert model_name in MODEL_ARCH_REGISTRY.keys(), f"Model arch: {model_name} not exists, only support: {names}"
+    assert model_name in MODEL_ARCH_REGISTRY.keys(), f"Model arch [{model_name}] not exists, only support: {names}"
     model=MODEL_ARCH_REGISTRY[model_name](
                                     is_test=is_test,
                                     pretrained_path=model_path,

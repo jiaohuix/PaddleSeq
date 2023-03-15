@@ -14,10 +14,12 @@ from ppseq.reader import prep_dataset, prep_loader
 from ppseq_cli.validate import validation
 from ppseq.models import build_model
 from ppseq.criterions import build_criterion
-from ppseq.lr_scheduler import ReduceOnPlateauWithAnnael,InverseSquareRoot,KneeLRScheduler
+from ppseq.optim.lr_scheduler import ReduceOnPlateauWithAnnael,InverseSquareRoot,KneeLRScheduler
 from ppseq.utils import set_paddle_seed,get_grad_norm
 from ppseq.logging import NMTMetric,get_logger
 from ppseq.checkpoint_utils import save_model
+from ppseq.optim import build_optimizer, build_lr_scheduler
+
 
 def train_one_epoch(conf,
                     dataloader,
@@ -118,95 +120,7 @@ def train_one_epoch(conf,
             scheduler.step(step_id)
         step_id += 1
 
-
     return step_id, gnorm
-
-
-def get_optimizer_scheduler(conf,model,dataloader,global_step_id):
-    scheduler = None
-    learn_args=conf.learning_strategy
-    sched_args =conf.learning_strategy.scheduler[learn_args.sched]
-    from paddlenlp.transformers  import LinearDecayWithWarmup
-    if learn_args.sched == "plateau":
-        scheduler = ReduceOnPlateauWithAnnael(learning_rate=float(learn_args.learning_rate),
-                                              patience=sched_args.patience,
-                                              force_anneal=sched_args.force_anneal,
-                                              factor=sched_args.lr_shrink,
-                                              min_lr=learn_args.min_lr)  # reduce the learning rate until it falls below 10−4
-    elif learn_args.sched == "cosine":
-        scheduler = CosineAnnealingDecay(learning_rate=float(learn_args.learning_rate),
-                                         T_max=sched_args.t_max,
-                                         last_epoch=global_step_id)
-
-    elif learn_args.sched == "linear":
-        scheduler = LinearDecayWithWarmup(learning_rate=float(learn_args.learning_rate),
-                                          warmup=learn_args.warm_steps,
-                                          last_epoch=global_step_id if conf.train.resume else -1,
-                                          total_steps=conf.train.max_epoch * len(dataloader))
-
-    elif learn_args.sched == "noamdecay":
-        scheduler = NoamDecay(d_model=sched_args.d_model,
-                              warmup_steps=learn_args.warm_steps,
-                              learning_rate=float(learn_args.learning_rate),
-                              last_epoch=global_step_id)
-    elif learn_args.sched == "inverse_sqrt":
-        scheduler = InverseSquareRoot(warmup_init_lr=float(sched_args.warmup_init_lr),
-                                      warmup_steps=learn_args.warm_steps,
-                                      learning_rate=float(learn_args.learning_rate),
-                                      last_epoch=global_step_id)
-
-    elif learn_args.sched == "knee":
-        epoch_steps = len(dataloader)
-        explore_steps =  sched_args.explore_epochs * epoch_steps
-        total_steps = conf.train.max_epoch * epoch_steps
-        print("explore_steps",explore_steps,"total_steps",total_steps)
-        scheduler = KneeLRScheduler(warmup_init_lr=float(sched_args.warmup_init_lr),
-                                    peak_lr=float(learn_args.learning_rate),
-                                    warmup_steps=learn_args.warm_steps,
-                                    explore_steps=explore_steps,
-                                    total_steps= total_steps,
-                                    last_epoch=global_step_id if conf.train.resume else -1)
-
-
-    assert scheduler is not None, "Sched should in [plateau|cosine|linear|noamdecay|inverse_sqrt|knee]."
-    assert learn_args.clip_type in ["local","global"], "clip_type should in [local|global]."
-    if learn_args.clip_norm<=0:
-        clip=None
-    else:
-        clip_map={"local":"ClipGradByNorm","global":"ClipGradByGlobalNorm"}
-        clip=getattr(paddle.nn,clip_map[learn_args.clip_type])(clip_norm=learn_args.clip_norm)
-
-    optimizer = None
-    if learn_args.optim == "nag":
-        optim_args=conf.learning_strategy.optimizer.nag
-        optimizer = paddle.optimizer.Momentum(
-            learning_rate=scheduler,
-            weight_decay=float(learn_args.weight_decay),
-            grad_clip=clip,
-            parameters = model.parameters(),
-            momentum=optim_args.momentum,
-            use_nesterov=optim_args.use_nesterov)
-    elif learn_args.optim == "adam":
-        optim_args=conf.learning_strategy.optimizer.adam
-        optimizer = paddle.optimizer.Adam(
-            learning_rate=scheduler,
-            weight_decay=float(learn_args.weight_decay),
-            grad_clip=clip,
-            parameters=model.parameters(),
-            beta1=optim_args.beta1,
-            beta2=optim_args.beta2)
-    elif learn_args.optim == "adamw":
-        optim_args=conf.learning_strategy.optimizer.adam
-        optimizer = paddle.optimizer.AdamW(
-            learning_rate=scheduler,
-            weight_decay=float(learn_args.weight_decay),
-            grad_clip=clip,
-            parameters=model.parameters(),
-            beta1=optim_args.beta1,
-            beta2=optim_args.beta2)
-    assert optimizer is not None, "Optimizer should in [nag|adam|adamw]"
-
-    return optimizer,scheduler
 
 def early_stop(conf,optimizer,val_loss,lowest_val_loss,num_runs,gnorm,global_step_id,logger):
     stop_flag=False
@@ -282,13 +196,18 @@ def main_worker(*args):
     if local_rank == 0:
         strtime = time.strftime("Time%m%d_%Hh%Mm", time.localtime(time.time()))
         lang_direction=f"{conf.data.src_lang}{conf.data.tgt_lang}"
-        logdir=os.path.join(conf.SAVE,f"vislogs/{lang_direction}/{conf.model.model_name}_{strtime}")
+        exp_name = conf.exp_name if conf.exp_name !="" else lang_direction
+        logdir=os.path.join(conf.SAVE,f"vislogs/{exp_name}/{conf.model.model_name}_{strtime}")
         logwriter=LogWriter(logdir=logdir)
 
     # 4. Define optimizer and lr_scheduler
     # global_step_id = conf.train.last_epoch * len(train_loader) + 1 if train_loader is not None else 0
+
     global_step_id = conf.train.last_step
-    optimizer,scheduler=get_optimizer_scheduler(conf,model,train_loader,global_step_id)
+    scheduler = build_lr_scheduler(conf, train_loader, global_step_id)
+    optimizer = build_optimizer(optim_args=conf.optimizer, paramaters=model.parameters(), scheduler=scheduler)
+
+
 
     # 5. Load  resume  optimizer states
     if conf.train.resume:
@@ -389,6 +308,7 @@ def main_worker(*args):
 
 
 def main():
+    os.system("export PYTHONWARNINGS='ignore:semaphore_tracker:UserWarning'")
     args = get_arguments()
     conf = get_config(args)
     if not conf.eval:

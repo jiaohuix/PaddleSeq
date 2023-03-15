@@ -124,8 +124,8 @@ class TransformerDecoder(nn.TransformerDecoder):
             new_caches.append(tuple([increment_cache]))
         return new_caches
 
-    def forward_embedding(self,tgt_tokens,caches=None,diagonal=1):
-
+    def forward_embedding(self,tgt_tokens,caches=None):
+        diagonal = 1
         # encoder output
         tgt_len = tgt_tokens.shape[-1]  # inference step num
 

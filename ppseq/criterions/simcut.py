@@ -12,12 +12,12 @@ class CrossEntropyWithSimcut(nn.Layer):
     simcut_p:  probability for cutoff in simcut, 0 means no cutoff in simcut
     """
     def __init__(self,
-                 label_smoothing=0.1,
+                 label_smooth_eps=0.1,
                  pad_idx=1,
                  alpha=0.0,
                  simcut_p=0.0):
         super(CrossEntropyWithSimcut,self).__init__()
-        self.ce_criterion=CrossEntropyCriterion(label_smooth_eps=label_smoothing,pad_idx=pad_idx)
+        self.ce_criterion=CrossEntropyCriterion(label_smooth_eps=label_smooth_eps,pad_idx=pad_idx)
         self.pad_idx =pad_idx
         self.alpha= alpha
         self.simcut_p=simcut_p

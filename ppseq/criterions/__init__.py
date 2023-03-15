@@ -20,33 +20,13 @@ for file in sorted(os.listdir(os.path.dirname(__file__))):
         importlib.import_module("ppseq.criterions." + file_name)
 
 
-
 def build_criterion(criterion_args):
     criterion_name = criterion_args.name
-    criterion_args.pop("name")
+    cargs = {k:v for k,v in criterion_args.items() if k!="name"}
+    # criterion_args.pop("name") # 不能pop，否则恢复训练无name了
     names = ", ".join(CRITERION_REGISTRY.keys())
-    assert criterion_name in CRITERION_REGISTRY.keys(), f"Criterion: {criterion_name} not exists, only support:  {names}"
+    assert criterion_name in CRITERION_REGISTRY.keys(), f"Criterion [{criterion_name}] not exists, only support:  {names}"
 
-    criterion = CRITERION_REGISTRY[criterion_name](**criterion_args)
+    criterion = CRITERION_REGISTRY[criterion_name](**cargs)
     return criterion
 
-'''
-usage:
-xx.yaml:
-criterion:
-    name: ce
-    label_smooth_eps: 0.1
-    pad_idx: 1
-    
-################################   
-from yacs.config import CfgNode
-from ppseq.criterions import build_criterion
-cfg_path="zhen.yaml"
-args = CfgNode.load_cfg(open(cfg_path, encoding="utf-8"))
-criterion_args = args.criterion
-
-criterion = build_criterion(criterion_args)
-print(criterion)
-
-
-'''

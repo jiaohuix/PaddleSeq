@@ -7,6 +7,9 @@ def get_arguments(return_parser=False):
     """return argumeents, this will overwrite the config after loading yaml file"""
     parser = argparse.ArgumentParser(description="Simultranslation", add_help=True)
     parser.add_argument("-c", "--cfg", default=None, type=str,required=True, metavar="FILE", help="yaml file path")
+    # experiment parameters
+    parser.add_argument("--exp-name", default="", type=str,help="experiment name, visual log will write to output/visual/exp_name")
+
 
     # distributed training parameters
     parser.add_argument("--amp", action="store_true")
@@ -83,6 +86,7 @@ def get_config(args):
     conf = CfgNode.load_cfg(open(args.cfg, encoding="utf-8"))
     conf.defrost()
     # distributed training parameters
+    conf.exp_name = args.exp_name
     if args.amp:
         conf.train.amp = args.amp
     if args.ngpus:
@@ -140,32 +144,32 @@ def get_config(args):
         conf.model.init_from_params = args.pretrained
     if args.save_model:
         conf.model.save_model = args.save_model
-    # Optimizer parameters
-    if args.optim:
-        conf.learning_strategy.optim = args.optim
-    if args.clip_norm:
-        conf.learning_strategy.clip_norm = args.clip_norm
-    if args.momentum:
-        conf.learning_strategy.optimizer.nag.momentum = args.momentum
-    if args.weight_decay:
-        conf.learning_strategy.weight_decay = args.weight_decay
-    # Learning rate schedule parameters
-    if args.sched:
-        conf.learning_strategy.sched = args.sched
-    if args.lr:
-        conf.learning_strategy.learning_rate = args.lr
-    if args.warmup:
-        conf.learning_strategy.scheduler.warmup.warm_steps = args.warmup
-    if args.reset_lr:
-        conf.learning_strategy.reset_lr = args.reset_lr
-    if args.min_lr:
-        conf.learning_strategy.min_lr = args.min_lr
-    if args.lr_shrink:
-        conf.learning_strategy.scheduler.plateau.lr_shrink = args.lr_shrink
-    if args.patience:
-        conf.learning_strategy.scheduler.plateau.patience = args.patience
-    if args.force_anneal:
-        conf.learning_strategy.scheduler.plateau.force_anneal = args.force_anneal
+        # # Optimizer parameters
+        # if args.optim:
+        #     conf.learning_strategy.optim = args.optim
+        # if args.clip_norm:
+        #     conf.learning_strategy.clip_norm = args.clip_norm
+        # if args.momentum:
+        #     conf.learning_strategy.optimizer.nag.momentum = args.momentum
+        # if args.weight_decay:
+        #     conf.learning_strategy.weight_decay = args.weight_decay
+        # # Learning rate schedule parameters
+        # if args.sched:
+        #     conf.learning_strategy.sched = args.sched
+        # if args.lr:
+        #     conf.learning_strategy.learning_rate = args.lr
+        # if args.warmup:
+        #     conf.learning_strategy.scheduler.warmup.warm_steps = args.warmup
+        # if args.reset_lr:
+        #     conf.learning_strategy.reset_lr = args.reset_lr
+        # if args.min_lr:
+        #     conf.learning_strategy.min_lr = args.min_lr
+        # if args.lr_shrink:
+        #     conf.learning_strategy.scheduler.plateau.lr_shrink = args.lr_shrink
+        # if args.patience:
+        #     conf.learning_strategy.scheduler.plateau.patience = args.patience
+        # if args.force_anneal:
+        #     conf.learning_strategy.scheduler.plateau.force_anneal = args.force_anneal
     # # Augmentation parameters
     # if args.smoothing:
     #     conf.learning_strategy.label_smooth_eps = args.smoothing
