@@ -86,7 +86,7 @@ def cat(tensors, dim=0):
 paddle.cat = cat
 
 @patch_to(paddle.Tensor)
-def size(self, dim=None):
+def size_torch(self, dim=None):
     if dim is None:
         return self.shape
     return self.shape[dim]
@@ -95,14 +95,14 @@ def Size(sizes: List[int]):
     return sizes
 paddle.Size = Size
 
-#### 比大小
+#### 比大小  other 必须是tensor
 def eq(input, other, out=None):
-    return paddle.equal(x=input, y=other)
+    return input == other
 paddle.eq = eq
 eq = patch_to(paddle.Tensor)(eq)
 
 def ne(input, other, out=None):
-    return paddle.not_equal(x=input, y=other)
+    return input != other
 paddle.ne = ne
 ne = patch_to(paddle.Tensor)(ne)
 
@@ -260,7 +260,10 @@ def clamp(self, min=None, max=None, name=None):
 paddle.clamp = paddle.clip
 
 # scatter  # 如果功能不一样，尽量使用不同名字
+# tensor.scatter_torch
 def scatter_torch(input, dim, index, value):
+    if dim < 0:
+        dim = input.ndim + dim
     assert dim == 0 or dim == 1
     assert input.ndim == index.ndim == value.ndim == 2
     index = index.astype("int64")
@@ -275,8 +278,27 @@ def scatter_torch(input, dim, index, value):
     res = paddle.scatter_nd_add(input, index, updates)
     return res
 paddle.scatter_torch = scatter_torch  # 修改paddle
-scatter_torch = patch_to(paddle.Tensor)(scatter_torch) # 修改Tensor
+scatter = patch_to(paddle.Tensor)(scatter_torch) # 修改Tensor
 
+# tensor.scatter_
+@patch_to(paddle.Tensor)
+def scatter_(self, dim, index, value):
+    if dim < 0:
+        dim = input.ndim + dim
+    assert dim == 0 or dim == 1
+    assert self.ndim == index.ndim == value.ndim == 2
+    index = index.astype("int64")
+    i, j = index.shape
+    grid_x, grid_y = paddle.meshgrid(paddle.arange(i), paddle.arange(j))
+    if dim == 0:
+        index = paddle.stack([index.flatten(), grid_y.flatten()], axis=1)
+    else:
+        index = paddle.stack([grid_x.flatten(), index.flatten()], axis=1)
+    updates_index = paddle.stack([grid_x.flatten(), grid_y.flatten()], axis=1)
+    updates = paddle.gather_nd(value, index=updates_index)
+    res = paddle.scatter_nd_add(self, index, updates)
+    self.set_value(res)
+    return self
 
 def masked_fill(x, mask, value):
     return paddle.where(mask, paddle.to_tensor(value, dtype=x.dtype), x)
@@ -311,7 +333,7 @@ def get_parameter_dtype(parameter: nn.Layer):
         return next(parameter.named_parameters())[1].dtype
     except StopIteration:
         return paddle.get_default_dtype()
-    
+
 @patch_to(nn.Layer, as_prop=True)
 def device(self):
     return get_parameter_device(self)
@@ -319,7 +341,7 @@ def device(self):
 @patch_to(nn.Layer, as_prop=True)
 def dtype(self):
     return get_parameter_dtype(self)
-    
+
 @patch_to(nn.Layer)
 def named_layers(self):
     return self.named_sublayers(include_self=True)
@@ -361,14 +383,14 @@ def pad_new(x, pad, mode="constant", value=0):
         return padded.slice(axes=axes, starts=starts, ends=ends)
     else:
         return padded
-    
+
 F.pad_new = pad_new
 
 # # BatchNorm2D不转成fp16
 # @patch_to(nn.Layer)
 # def _apply(self, func, device, dtype, blocking, include_sublayers=True):
 #     if isinstance(self, nn.BatchNorm2D):
-#         return 
+#         return
 #     if include_sublayers:
 #         for layer in self.children():
 #             layer._apply(func, device, dtype, blocking, include_sublayers)

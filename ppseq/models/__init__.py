@@ -5,7 +5,7 @@ from .seq_generator import SequenceGenerator
 from ppseq.reader import prep_vocab
 from ppseq.checkpoint_utils import freeze_by_names,unfreeze_by_names
 from yacs.config import CfgNode
-
+from omegaconf.dictconfig import DictConfig
 MODEL_ARCH_REGISTRY={}
 
 # 注册模型函数
@@ -35,7 +35,7 @@ models_dir = os.path.dirname(__file__)
 import_models(models_dir, namespace="ppseq.models")
 
 def build_model(conf_or_path,is_test=False):
-    if isinstance(conf_or_path,CfgNode):
+    if isinstance(conf_or_path,(CfgNode,DictConfig)):
         conf = conf_or_path
     elif isinstance(conf_or_path,str) and os.path.isfile(os.path.join(conf_or_path,'model.yaml')): # load config
         args_path = os.path.join(conf_or_path,'model.yaml')

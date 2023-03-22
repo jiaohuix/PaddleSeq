@@ -1,3 +1,4 @@
+import yacs
 import numpy as np
 from functools import partial
 from paddle.io import DataLoader, BatchSampler
@@ -92,7 +93,8 @@ def prep_vocab(conf):
         unk_token=data_args.special_token[3]
     )
     # 是否把vocab词数pad到factor倍数，可以加速训练
-    conf.defrost()
+    if isinstance(conf,yacs.config.CfgNode):
+        conf.defrost()
     if data_args.pad_vocab:
         padding_vocab = (
             lambda x: (x + data_args.pad_factor - 1) // data_args.pad_factor * data_args.pad_factor
@@ -102,7 +104,8 @@ def prep_vocab(conf):
     else:
         conf.model.src_vocab_size = len(src_vocab)
         conf.model.tgt_vocab_size = len(tgt_vocab)
-    conf.freeze()
+    if isinstance(conf,yacs.config.CfgNode):
+        conf.freeze()
     return src_vocab, tgt_vocab
 
 

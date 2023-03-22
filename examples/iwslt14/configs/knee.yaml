@@ -1,0 +1,189 @@
+seed: 1
+eval: False
+SAVE: output # save dir for model、log、generated text
+exp_name: knee_scheduler
+
+# Hyparams for dataset:
+data:
+  src_lang: de
+  tgt_lang: en
+  # The prefix pattern to match train、valid、test  files.
+  train_pref: datasets/iwslt14/train
+  valid_pref: datasets/iwslt14/valid
+  test_pref:  datasets/iwslt14/test
+  # The prefix pattern to match vocabulary.
+  vocab_pref: datasets/iwslt14/vocab
+  use_moses_bpe: False
+  src_bpe_path: datasets/iwslt14/code
+  tgt_bpe_path: datasets/iwslt14/code
+  truecase_path: None
+  # The <bos>, <eos> and <unk> tokens in the dictionary.
+  special_token: ["<s>","<pad>","</s>","<unk>"]
+  # Used to pad vocab size to be multiple of pad_factor.
+  pad_vocab: False
+  pad_factor: 8
+  has_target: True
+  use_binary: False
+  lazy_load: False  # weather to load buffer size of data
+ # for dual traing
+  with_tag: False  # if with tag, replace <s> in prev_tokens with <lang> tag:    <sos> tgt_tokens -> <lang> tgt_tokens
+  lang_embed: False
+  language_token: ["<de>","<en>"]
+
+
+# Hyparams for models:
+model:
+  model_name: transformer_iwslt_de_en
+  dmodel: 512
+  dropout: 0.3
+  # Path of trained parameter, to make prediction
+  init_from_params: ""
+  # The directory for saving models
+  save_model: "ckpt_deen_knee"
+  # Size of source、target word dictionary（automatically updated after 'prep_vocab'）.
+  src_vocab_size: None
+  tgt_vocab_size: None
+  # Index for <bos>,<pad>,<eos>,<unk> token
+  bos_idx: 0
+  pad_idx: 1
+  eos_idx: 2
+  unk_idx: 3
+  # Max length of sequences deciding the size of position encoding table.
+  min_length: 0
+  max_length: 1024
+
+##### Hyparams for criterions #####
+criterion:
+  name: ce   # [ce,dual_ce,kd_ce,rdrop_ce,simcut_ce]
+  # The weight used to mix up the ground-truth distribution and the fixed uniform distribution
+  # in label smoothing when training. Set this as zero if label smoothing is not wanted.
+  label_smooth_eps: 0.1
+  pad_idx: 1
+  ### 1 rdrop ###
+#  alpha: 5
+
+  ### 2 simcut ###
+#  alpha: 3
+#  simcut_p: 0.05
+
+  ### 3 dual ###
+#  alpha: 1
+#  max_epochs: 50
+
+  ### 4 kd ###
+#  alpha: 5
+#  tau: 1
+
+  ### 5 schedule ###
+
+
+##### Hyparams for optimizer #####
+optimizer:
+  name: adamw  # [sgd,mom,adam,adamw]
+  weight_decay: 1e-4
+  ### 1.momentum ###
+#  use_nesterov: True
+#  momentum: 0.99
+
+  ### 2.adam/adamw ###
+  beta1: 0.9
+  beta2: 0.98
+
+  clip:
+    type: lnorm  # [lnorm|gnorm|value]
+    value: 0
+    ### for value clip
+  #      min: -1
+  #      max: 1
+
+
+##### Hyparams for lr scheduler #####
+lr_scheduler:
+  name: knee  # [inverse_sqrt|plateau|cosine|linear|noamdecay|knee]
+  learning_rate: 3e-4
+  reset_lr: False
+  ### 6. knee ###
+  warmup_init_lr: 1e-7
+  warmup_steps: 4000
+  explore_epochs: 40
+  total_steps: -1
+  last_epoch: -1
+
+  ### 1. inverse_sqrt ###
+#  warmup_init_lr: 1e-7
+#  warmup_steps: 4000
+#  last_epoch: -1
+
+  ### 2. plateau ###
+#  patience: -1
+#  force_anneal: 50
+#  factor: 0.1
+#  min_lr: 1e-7
+
+  ### 3. cosine ###
+#  T_max: 10
+#  last_epoch: -1
+
+  ### 4. linear ###
+#  warmup: 4000
+#  last_epoch: -1
+#  total_steps: -1
+
+  ### 5. noamdecay ###
+#  d_model: 512
+#  warmup_steps: 4000
+#  last_epoch: -1
+
+
+
+
+# Hyparams for training:
+train:
+  # Whether to use cuda
+  use_gpu: True
+  num_workers: 1
+  # The number of epoches for training
+  max_epoch: 50
+  max_update: -1
+  resume: ""
+  last_epoch: 0 # default 0 to train from scratch
+  last_step: 0
+  # The frequency to save trained models when training.
+  save_epoch: 10
+  save_step: 0
+  stop_patience: -1
+  amp: True
+  fp16_init_scale: 128
+  amp_scale_window: False
+  growth_interval: 128
+  update_freq: 1
+  # Args for reader, see reader.py for details
+  log_steps: 100
+  # max tokens per batch, eg: 2k 4k 6k (12g,24g,32g  use amp)
+  max_tokens: 4096
+  max_sentences: None
+  batch_size_factor: 8
+  report_bleu: True
+  eval_beam: False
+  # STACL
+  pool_size: 200000
+  sort_type: "pool"
+  shuffle: True
+  shuffle_batch: True
+  train_data_size: -1
+
+# Hyparams for generation:
+generate:
+  search_strategy: beam # [beam/sample]
+  infer_bsz: 256
+  max_sentences: None
+  # The parameters for beam search.
+  beam_size: 5
+  # The number of decoded sentences to output.
+  n_best: 1
+  max_out_len: 200
+  # max_out_len is relative length to src_len
+  # The file to output the translation results of predict_file to.
+  generate_path: "generate.txt"
+  sorted_path: "result.txt"
+  detokenize: False

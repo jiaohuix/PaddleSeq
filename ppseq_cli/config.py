@@ -1,7 +1,19 @@
+import os
 import paddle
 import argparse
 from yacs.config import CfgNode
+from omegaconf import DictConfig,OmegaConf
 
+def get_cfg_path():
+    CONFIG = os.getenv("CONFIG", "configs")  # key default
+    cfgDir = os.path.dirname(CONFIG)
+    cfgFile = os.path.basename(CONFIG).replace(".yaml","")
+    return cfgDir, cfgFile
+
+def omega2yacs(cfg):
+    config_dict = OmegaConf.to_container(cfg, resolve=True)
+    yacs_config = CfgNode(init_dict=config_dict)
+    return yacs_config
 
 def get_arguments(return_parser=False):
     """return argumeents, this will overwrite the config after loading yaml file"""
@@ -86,7 +98,8 @@ def get_config(args):
     conf = CfgNode.load_cfg(open(args.cfg, encoding="utf-8"))
     conf.defrost()
     # distributed training parameters
-    conf.exp_name = args.exp_name
+    if args.exp_name != "":
+        conf.exp_name = args.exp_name
     if args.amp:
         conf.train.amp = args.amp
     if args.ngpus:

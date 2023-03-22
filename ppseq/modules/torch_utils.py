@@ -56,9 +56,9 @@ def masked_fill(x, mask, value):
 
 
 def scatter(tensor,axis,index,value):
-    assert axis==0 or axis==1
     if axis < 0:
         axis = tensor.ndim + axis
+    assert axis==0 or axis==1
     assert tensor.ndim==index.ndim==value.ndim==2
     index=paddle.cast(index,dtype='int64')
     i, j = index.shape

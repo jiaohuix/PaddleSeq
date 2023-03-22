@@ -101,6 +101,7 @@ optimizer:
 lr_scheduler:
   name: inverse_sqrt  # [inverse_sqrt|plateau|cosine|linear|noamdecay|knee]
   learning_rate: 5e-4
+  reset_lr: False
 
   ### 1. inverse_sqrt ###
   warmup_init_lr: 1e-7
@@ -150,7 +151,7 @@ train:
   save_epoch: 10
   save_step: 0
   stop_patience: -1
-  amp: False
+  amp: True
   fp16_init_scale: 128
   amp_scale_window: False
   growth_interval: 128

@@ -57,6 +57,7 @@ def build_lr_scheduler(conf, dataloader=None,global_step=-1):
 
     # common params
     sargs = {k: check_float(v) for k,v in scheduler_args.items() if k!= "name"}
+    del sargs["reset_lr"]
 
     # extra params
     if "last_epoch" in sargs.keys(): sargs["last_epoch"] = global_step

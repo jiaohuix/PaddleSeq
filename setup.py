@@ -32,11 +32,13 @@ setup(
         "pandas==1.1.5",
         "paddlenlp==2.1.1",
         "tqdm>=4.27.0",
+        "hydra-core",
     ],
     entry_points={
         "console_scripts": [
             "ppseq_preprocess=ppseq_cli.preprocess:cli_main",
             "ppseq_train=ppseq_cli.train:main",
+            "hydra_train=ppseq_cli.hydra_train:main",
             "ppseq_generate=ppseq_cli.generate:main",
         ],
     }

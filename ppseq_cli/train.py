@@ -126,7 +126,8 @@ def early_stop(conf,optimizer,val_loss,lowest_val_loss,num_runs,gnorm,global_ste
     stop_flag=False
     # 1.stop training when lr too small
     cur_lr = round(optimizer.get_lr(), 5)
-    min_lr = round(conf.learning_strategy.min_lr, 5)
+    # min_lr = round(conf.learning_strategy.min_lr, 5)
+    min_lr = round(1e-7, 5)
     if (cur_lr <= min_lr):
         logger.info(f"early stop since min lr has reached.")
         stop_flag=True
@@ -217,8 +218,8 @@ def main_worker(*args):
         assert os.path.isfile(optim_path) is True, f"File {optim_path} does not exist."
         model_state = paddle.load(model_path)
         opt_state = paddle.load(optim_path)
-        if conf.learning_strategy.reset_lr:  # weather to reset lr
-            opt_state["LR_Scheduler"]["last_lr"] = conf.learning_strategy.learning_rate
+        if conf.lr_scheduler.reset_lr:  # weather to reset lr
+            opt_state["LR_Scheduler"]["last_lr"] = conf.lr_scheduler.learning_rate
         # resume best bleu
         # best_bleu = opt_state['LR_Scheduler'].get('best_bleu', 0)
         model.set_dict(model_state)
@@ -289,7 +290,7 @@ def main_worker(*args):
 
 
         # adjust learning rate when val ppl stops improving (each epoch).
-        if conf.learning_strategy.sched == "plateau":
+        if conf.lr_scheduler.name == "plateau":
             scheduler.step(val_ppl)
 
         # early stop
@@ -317,7 +318,8 @@ def main():
         dataset_train = None
     dataset_dev = prep_dataset(conf, mode="dev")
 
-    dist.spawn(main_worker, args=(conf, dataset_train, dataset_dev,), nprocs=conf.ngpus)
+    ngpus = len(paddle.static.cuda_places())
+    dist.spawn(main_worker, args=(conf, dataset_train, dataset_dev,), nprocs=ngpus)
 
 
 if __name__ == "__main__":

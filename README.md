@@ -11,9 +11,11 @@ For Machine Translation using PaddlePaddle.
 ## Requirements
 
 ```shell
+# install ppseq
 git clone https://github.com/MiuGod0126/PaddleSeq.git
 cd PaddleSeq
-pip install -r requirements.txt
+pip install -r requirements.txt && pip install -e .
+# data tools
 git clone https://github.com/MiuGod0126/nmt_data_tools.git
 pip install -r nmt_data_tools/requirements.txt
 ```
@@ -26,6 +28,17 @@ pip install -r nmt_data_tools/requirements.txt
 2. ⭐[IKCEST22](examples/ikcest22/README.md)
 
 
+
+使用hydra管理参数：
+
+```shell
+# 1.环境变量
+export CONFIG=$PWD/configs/nmt.yaml
+# 2.修改yaml中的路径为绝对路径
+sed -i "s|datasets|$PWD/datasets|g"  configs/nmt.yaml
+# 3.启动hydra训练
+hydra_train key=value...
+```
 
 
 
