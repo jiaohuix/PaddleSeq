@@ -19,8 +19,8 @@ cut -f2 -d"," $infolder/preliminary_a_test.csv > $outfolder/test.src
 
 echo "train dev split..."
 python nmt_data_tools/my_tools/train_dev_split.py src tgt train $outfolder  500
-mv $outfolder/dev.src  $outfolder/valid.$src
-mv $outfolder/dev.tgt  $outfolder/valid.$tgt
+mv $outfolder/dev.src  $outfolder/valid.src
+mv $outfolder/dev.tgt  $outfolder/valid.tgt
 
 
 echo "build vocab..."
