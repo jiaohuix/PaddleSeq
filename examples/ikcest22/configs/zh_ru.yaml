@@ -1,6 +1,7 @@
 seed: 1
 eval: False
 SAVE: output # save dir for model、log、generated text
+exp_name: zhfr
 
 # Hyparams for dataset:
 data:
@@ -14,7 +15,7 @@ data:
   vocab_pref: datasets/bpe/zh_ru/vocab
   use_moses_bpe: False
   src_bpe_path: datasets/bpe/zh_ru/code.zh
-  tgt_bpe_path: datasets/bpe/zh_ru/code.ru
+  tgt_bpe_path: datasets/bpe/zh_ru/code.th
   truecase_path: None
   # The <bos>, <eos> and <unk> tokens in the dictionary.
   special_token: ["<s>","<pad>","</s>","<unk>"]
@@ -51,48 +52,88 @@ model:
   min_length: 0
   max_length: 1024
 
-# Hyparams for optimizer and scheduler:
-learning_strategy:
-  optim: adam
-  sched: inverse_sqrt
-  warm_steps: 4000
-  learning_rate: 5e-4
-  min_lr: -1 # early stop
-  reset_lr: False
-  weight_decay: 1e-4
-  clip_norm: 0
-  clip_type: local  # [local|global]
-
+##### Hyparams for criterions #####
+criterion:
+  name: ce   # [ce,dual_ce,kd_ce,rdrop_ce,simcut_ce]
   # The weight used to mix up the ground-truth distribution and the fixed uniform distribution
   # in label smoothing when training. Set this as zero if label smoothing is not wanted.
   label_smooth_eps: 0.1
+  pad_idx: 1
+  ### 1 rdrop ###
+#  alpha: 5
 
-  optimizer:
-    nag:
-      use_nesterov: True
-      momentum: 0.99
-    adam: # same as adamw
-      beta1: 0.9
-      beta2: 0.98
+  ### 2 simcut ###
+#  alpha: 3
+#  simcut_p: 0.05
 
-  scheduler:
-    # The parameters for learning rate scheduling."Reduce the learning rate by an order of magnitude
-    # after each epoch until it falls below 10−4"
-    plateau: # convs2s
-      patience: 1 # shrink lr after several epochs without improving  dev ppl.
-      force_anneal: 50 # force annneal based on lr_shrink
-      lr_shrink: 0.1 # lr=lr*lr_shrink
-    cosine:
-      t_max: 10
-    linear: # share for noamdecay and inverse_sqrt
-      warm_steps: 4000
-    noamdecay: # transformer
-      d_model: 512
-    inverse_sqrt: # fairseq offen use for transformer
-      warmup_init_lr: 1e-7
-    knee:
-      warmup_init_lr: 1e-7
-      explore_epochs: 40
+  ### 3 dual ###
+#  alpha: 1
+#  max_epochs: 50
+
+  ### 4 kd ###
+#  alpha: 5
+#  tau: 1
+
+  ### 5 schedule ###
+
+
+##### Hyparams for optimizer #####
+optimizer:
+  name: adamw  # [sgd,mom,adam,adamw]
+  weight_decay: 1e-4
+  ### 1.momentum ###
+#  use_nesterov: True
+#  momentum: 0.99
+
+  ### 2.adam/adamw ###
+  beta1: 0.9
+  beta2: 0.98
+
+  clip:
+    type: lnorm  # [lnorm|gnorm|value]
+    value: 0
+    ### for value clip
+  #      min: -1
+  #      max: 1
+
+
+##### Hyparams for lr scheduler #####
+lr_scheduler:
+  name: inverse_sqrt  # [inverse_sqrt|plateau|cosine|linear|noamdecay|knee]
+  learning_rate: 5e-4
+  reset_lr: False
+
+  ### 1. inverse_sqrt ###
+  warmup_init_lr: 1e-7
+  warmup_steps: 4000
+  last_epoch: -1
+
+  ### 2. plateau ###
+#  patience: -1
+#  force_anneal: 50
+#  factor: 0.1
+#  min_lr: 1e-7
+
+  ### 3. cosine ###
+#  T_max: 10
+#  last_epoch: -1
+
+  ### 4. linear ###
+#  warmup: 4000
+#  last_epoch: -1
+#  total_steps: -1
+
+  ### 5. noamdecay ###
+#  d_model: 512
+#  warmup_steps: 4000
+#  last_epoch: -1
+
+  ### 6. knee ###
+#  warmup_init_lr: 1e-7
+#  warmup_steps: 4000
+#  explore_epochs: 40
+#  total_steps: -1
+#  last_epoch: -1
 
 
 # Hyparams for training:
@@ -110,7 +151,7 @@ train:
   save_epoch: 10
   save_step: 0
   stop_patience: -1
-  amp: False
+  amp: True
   fp16_init_scale: 128
   amp_scale_window: False
   growth_interval: 128
