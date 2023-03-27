@@ -5,7 +5,7 @@ raw_folder=datasets/raw
 tmp_folder=datasets/tmp
 bpe_folder=datasets/bpe
 valid_len=1000
-bpe_ops=18000
+bpe_ops=${1:-"18000"}
 URL="https://dataset-bj.cdn.bcebos.com/qianyan/datasets.tar.gz"
 
 function build_folder() {

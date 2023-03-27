@@ -12,7 +12,7 @@ for ((i=0;i<${#directions[@]};i++))
       direct=${directions[$i]}
       ckpt=${ckpts[$i]}
       echo "------------------------------------------------------------evaluate ${direct}....------------------------------------------------------------"
-      python paddleseq_cli/generate.py -c examples/ikcest22/configs/${direct}.yaml --pretrained $ckpt --test-pref datasets/bpe/${data_paths[$i]}/valid
+      ppseq_generate -c examples/ikcest22/configs/${direct}.yaml --pretrained $ckpt --test-pref datasets/bpe/${data_paths[$i]}/valid
   done
 
 echo "all done"
