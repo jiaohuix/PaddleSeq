@@ -4,7 +4,7 @@
 
 
 echo 'Cloning Subword nmt_data_tools repository ...'
-git clone https://github.com/MiuGod0126/nmt_data_tools.git
+git clone https://gitee.com/miugod/nmt_data_tools.git
 
 SCRIPTS=nmt_data_tools/mosesdecoder/scripts
 TOKENIZER=$SCRIPTS/tokenizer/tokenizer.perl
